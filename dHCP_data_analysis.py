@@ -3,9 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as sc
 import glob
+from os.path import expanduser
+home = expanduser("~")
 
 # read the date birth data
-with open('/Users/meritxell/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/participants.tsv', newline='') as tsvfile:
+with open(home+'/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/participants.tsv', newline='') as tsvfile:
     reader = csv.reader(tsvfile, delimiter='\t')
     data = list(reader)
 
@@ -56,7 +58,7 @@ for i, v in enumerate(histt_c):
 # plt.show()
 
 # read the mri date data
-src_directory = '/Users/meritxell/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/'
+src_directory = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/'
 
 # get directories for each subject
 src_subjects = glob.glob(src_directory + 'sub-*' +'/sub-*_sessions.tsv', recursive=True)
