@@ -10,33 +10,24 @@ import glob
 import shutil
 from PIL import Image
 # import uuid
-import string, random
+# import string, random
 import csv
+# import imageio
+#from skimage import external
+import tifffile as tif
 
 # put all the same type of image together in the same directory
-src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/'
+src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
 dst_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/'
-# dst_dir0 = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/restore_T2w'
-# dst_dir1 = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/drawem87_space-T2w_dseg'
-# dst_dir2 = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/drawem9_space-T2w_dseg'
 dst_dir3 = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/ribbon_space-T2w_dseg'
 
 if not os.path.isdir(dst_directory):
     os.mkdir(dst_directory)
 
-# if not os.path.isdir(dst_dir0):
-#    os.mkdir(dst_dir0)
-
-# if not os.path.isdir(dst_dir1):
-#    os.mkdir(dst_dir1)
-
-# if not os.path.isdir(dst_dir2):
-#    os.mkdir(dst_dir2)
-
 if not os.path.isdir(dst_dir3):
     os.mkdir(dst_dir3)
 
-with open(home+'/Desktop/UPC/DD/Final_Project/Data_analysis/dhcp_t2_and_seg_data/participants.tsv', newline='') as tsvfile:
+with open(src_directory+'participants.tsv', newline='') as tsvfile:
     reader = csv.reader(tsvfile, delimiter='\t')
     data = list(reader)
 
@@ -65,36 +56,26 @@ for i in range(len(birth_date_s)):
 src_subjects = glob.glob(src_directory + 'sub-*', recursive=True)
 num_cortex = 0
 
-while num_cortex <= 100:
-    for subject in src_subjects:
-        sub = subject.split('/')[9].split('-')[1]
+for subject in src_subjects:
 
-        # select the subject that are in the list of the 100 youngest
-        if any(sub in s for s in birth_date_100):
-            src_sessions = glob.glob(subject + '/ses-*', recursive=True)
+    sub = subject.split('/')[9].split('-')[1]
 
-            for session in src_sessions:
-                # src_t2w = glob.glob(session+'/*-restore_T2w.nii.gz')[0]
-                # shutil.copy2(src_t2w, dst_dir0)
+    # select the subject that are in the list of the 100 youngest
+    if any(sub in s for s in birth_date_100) and num_cortex < 150:
 
-                # src_drawem87 = glob.glob(session+'/*-drawem87_space-T2w_dseg.nii.gz')[0]
-                # shutil.copy2(src_drawem87, dst_dir1)
+        src_sessions = glob.glob(subject + '/ses-*', recursive=True)
 
-                # src_drawem9 = glob.glob(session+'/*-drawem9_space-T2w_dseg.nii.gz')[0]
-                # shutil.copy2(src_drawem9, dst_dir2)
+        for session in src_sessions:
 
-                src_cortex = glob.glob(session + '/*-ribbon_space-T2w_dseg.nii.gz')
-                if len(src_cortex) == 1:
-                    shutil.copy2(src_cortex[0], dst_dir3)
-                    num_cortex += 1
+            src_cortex = glob.glob(session + '/*-ribbon_space-T2w_dseg.nii.gz')
+            if len(src_cortex) == 1:
+                shutil.copy2(src_cortex[0], dst_dir3)
+                num_cortex += 1
 
-# img_T2w = glob.glob(dst_dir0+'/*-restore_T2w.nii.gz', recursive=True)
-# img_drawem87 = glob.glob(dst_dir1+'/*-drawem87_space-T2w_dseg.nii.gz', recursive=True)
-# img_drawem9 = glob.glob(dst_dir2+'/*-drawem9_space-T2w_dseg.nii.gz', recursive=True)
 img_cortex = glob.glob(dst_dir3 + '/*-ribbon_space-T2w_dseg.nii.gz', recursive=True)
 
 count = 0
-num_imgs = 100  # len(img_cortex)
+num_imgs = 150  # len(img_cortex)
 
 # indicate for which directory we want to generate masks
 dirr = img_cortex
@@ -103,27 +84,36 @@ for j in range(len(dirr)):
     if count == num_imgs:
         break
     else:
-        img0 = nib.load(dirr[j])
-        data0 = img0.get_fdata()
-        mask0 = np.random.rand(*data0.shape)
+        img = nib.load(dirr[j - 1])
+        data = img.get_fdata()
+        mask = np.random.rand(*data.shape)
         # id_ = uuid.uuid1()
 
-        lettersAndDigits = string.ascii_letters + string.digits
-        id_ = ''.join((random.choice(lettersAndDigits) for i in range(8)))
+        # lettersAndDigits = string.ascii_letters + string.digits
+        # id_ = ''.join((random.choice(lettersAndDigits) for i in range(8)))
 
-        for i in range(len(data0[1, 1, :])):
-            mask0[:, :, i] = (data0[:, :, i] > 10)
+        for i in range(len(data[1, 1, :])):
+            # values of the cortical plate
+            mask[:, :, i] = (data[:, :, i] == 42)
+            mask[:, :, i] += (data[:, :, i] == 3)
 
-        final_m = mask0[:, :, 100]
-        final_d = data0[:, :, 100]
+        # for i in range(len(data[1,1,:])):
+        #    dst_dir_i = dst_directory+'ribbon_space-T2w_dseg/imgs/imgs'+str(j)+'/'
+        #    dst_dir_m = dst_directory+'ribbon_space-T2w_dseg/mask/mask'+str(j)+'/'
 
-        # Image.fromarray assumes the input is laid-out as unsigned 8-bit integers
-        final_m = (final_m * 255).astype(np.uint8)
-        mask_img = Image.fromarray(final_m, mode='L')
-        mask_img.save(dst_directory + 'ribbon_space-T2w_dseg/mask/' + str(id_) + '_' + str(j) + '.jpg')
+        #    if not os.path.isdir(dst_dir_i):
+        #        os.mkdir(dst_dir_i)
+        #    if not os.path.isdir(dst_dir_m):
+        #        os.mkdir(dst_dir_m)
 
-        # plt.imsave(dst_directory+'/mask/data'+str(j)+'.jpg', final_m)
-        plt.imsave(dst_directory + 'ribbon_space-T2w_dseg/imgs/' + str(id_) + '_' + str(j) + '.jpg',
-                   final_d)  # cmap = 'gray'
+        #    tif.imsave(dst_dir_i+'i'+"{0:0=3d}".format(i)+'.tif', data[:,:,i], bigtiff=True)
+        #    tif.imsave(dst_dir_m+'m'+"{0:0=3d}".format(i)+'.tif', mask[:,:,i], bigtiff=True)
+        #    count += 1
+
+        data_ = data.astype(np.uint16)
+        mask_ = mask.astype(np.uint16)
+
+        tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/imgs/imgs_' + str(j) + '.tif', data_)
+        tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/mask/mask_' + str(j) + '.tif', mask_)
 
         count += 1
