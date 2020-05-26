@@ -13,8 +13,8 @@ from PIL import Image
 # import string, random
 import csv
 # import imageio
-#from skimage import external
-import tifffile as tif
+# from skimage import external
+# import tifffile as tif
 
 # put all the same type of image together in the same directory
 src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
@@ -75,7 +75,7 @@ for subject in src_subjects:
 img_cortex = glob.glob(dst_dir3 + '/*-ribbon_space-T2w_dseg.nii.gz', recursive=True)
 
 count = 0
-num_imgs = 150  # len(img_cortex)
+num_imgs = 20
 
 # indicate for which directory we want to generate masks
 dirr = img_cortex
@@ -113,7 +113,13 @@ for j in range(len(dirr)):
         data_ = data.astype(np.uint16)
         mask_ = mask.astype(np.uint16)
 
-        tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/imgs/imgs_' + str(j) + '.tif', data_)
-        tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/mask/mask_' + str(j) + '.tif', mask_)
+        # tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/imgs/imgs_' + str(j) + '.tif', data_)
+        # tif.imsave(dst_directory + 'ribbon_space-T2w_dseg/mask/mask_' + str(j) + '.tif', mask_)
+
+        data_n = nib.Nifti1Image(data_, img.affine, img.header)
+        mask_n = nib.Nifti1Image(mask_, img.affine, img.header)
+
+        nib.save(data_n, dst_directory + 'ribbon_space-T2w_dseg/imgs/imgs_' + str(j) + '.nii.gz')
+        nib.save(mask_n, dst_directory + 'ribbon_space-T2w_dseg/mask/mask_' + str(j) + '.nii.gz')
 
         count += 1
