@@ -49,11 +49,11 @@ def take_second(elem):
 
 birth_date_s = sorted(birth_date, key=take_second)
 birth_date_20 = []
-count_50 = 0
+count_20 = 0
 
 for i in range(len(birth_date_s)):
     if float(birth_date_s[i][1]) < 30 and count_20 <= 50:
-        count_50 += 1
+        count_20 += 1
         birth_date_20.append(birth_date_s[i])
 
 src_subjects = glob.glob(src_directory + 'sub-*', recursive=True)
