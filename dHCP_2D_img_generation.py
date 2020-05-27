@@ -4,6 +4,7 @@ home = expanduser("~")
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 src_imgs_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/restore_T2w/'
 src_mask_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/ribbon_space-T2w_dseg/mask/'
@@ -22,6 +23,9 @@ for i in range(len(imgs_list)):
     mask_ = nib.load(mask_list[i])
     mask = mask_.get_fdata()
 
+    # mask for the plot
+    # mask_im = np.random.rand(*mask.shape)
+
     sub_i = imgs_list[i].split('/')[10].split('_')[0]
     sub_m = mask_list[i].split('/')[11].split('_')[0]
 
@@ -37,16 +41,20 @@ for i in range(len(imgs_list)):
                 # print('Next slice')
                 # if there are non zero elements we save the image
                 if np.count_nonzero(mask[:, :, j]) != 0:
-                    # plt.figure(figsize=(5, 5))
-                    # plt.imshow(img[:, :, j])
-                    # plt.imshow(mask[:, :, j], alpha=0.5)
+
+                    # mask_im[mask == 0] = np.nan
+
+                    # plt.figure()
+                    # plt.imshow(img[:, :, j], cmap='gray')
+                    # plt.imshow(mask_im[:,:,j], alpha=1)
                     # plt.savefig(src_both_dir + 'both_' + str(sub_i) + '_' + str(ses_i) + '_' + str(j) + '.png')
                     # plt.show()
+                    # plt.close()
 
-                    data_ = img[:, :, j].astype(np.uint16)
+                    data_ = img[:, :, j].astype(np.uint8)
                     data_n = nib.Nifti1Image(data_, img_.affine, img_.header)
 
-                    maskk_ = mask[:, :, j].astype(np.uint16)
+                    maskk_ = mask[:, :, j].astype(np.uint8)
                     mask_n = nib.Nifti1Image(maskk_, img_.affine, img_.header)
 
                     nib.save(data_n, src_both_dir + '/imgs/' + str(sub_i) + '_' + str(ses_i) + '_' + str(j) + '.nii.gz')
