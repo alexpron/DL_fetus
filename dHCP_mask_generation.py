@@ -12,14 +12,15 @@ from PIL import Image
 # import uuid
 # import string, random
 import csv
+
 # import imageio
 # import tifffile as tif
 
 # put all the same type of image together in the same directory
 src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
 dst_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/'
-dst_dir_mask = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/ribbon_space-T2w_dseg'
-dst_dir_imgs = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/restore_T2w'
+dst_dir_mask = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/ribbon_space-T2w_dseg'
+dst_dir_imgs = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/restore_T2w'
 
 if not os.path.isdir(dst_directory):
     os.mkdir(dst_directory)
@@ -30,7 +31,49 @@ if not os.path.isdir(dst_dir_mask):
 if not os.path.isdir(dst_dir_imgs):
     os.mkdir(dst_dir_imgs)
 
-with open(src_directory+'participants.tsv', newline='') as tsvfile:
+##### obtain MRI date
+
+mri_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
+
+# get directories for each subject
+mri_subjects = glob.glob(mri_directory + 'sub-*' + '/sub-*_sessions.tsv', recursive=True)
+
+mri_list = []
+
+for i in range(len(mri_subjects)):
+    with open(mri_subjects[i], newline='') as tsvfile:
+        subject = mri_subjects[i].split('/')[9].split('-')[1]
+        reader_mri = csv.reader(tsvfile, delimiter='\t')
+        data_mri = list(reader_mri)
+        data_mri.pop(0)
+
+        for j in range(len(data_mri)):
+            # print(str(j)+'\t'+str(data_mri))
+            vect = [subject, data_mri[j][1]]
+            mri_list.append(vect)
+
+
+def take_second(elem):
+    return elem[1]
+
+
+mri_date_s = sorted(mri_list, key=take_second)
+
+mri_date_20 = []
+count_20_ = 0
+
+for i in range(len(mri_date_s)):
+    if float(mri_date_s[i][1]) < 40 and count_20_ < 20:
+        if not any(mri_date_s[i][0] in s for s in mri_date_20):
+            # print(mri_date_s[i])
+            count_20_ += 1
+            mri_date_20.append(mri_date_s[i])  # ["id", "birth_date"]
+
+# print(mri_date_20)
+
+##### obtain birth date
+
+with open(src_directory + 'participants.tsv', newline='') as tsvfile:
     reader = csv.reader(tsvfile, delimiter='\t')
     data = list(reader)
 
@@ -56,6 +99,8 @@ for i in range(len(birth_date_s)):
         count_20 += 1
         birth_date_20.append(birth_date_s[i])
 
+# print(birth_date_20)
+
 src_subjects = glob.glob(src_directory + 'sub-*', recursive=True)
 num_cortex = 0
 
@@ -63,8 +108,8 @@ for subject in src_subjects:
 
     sub = subject.split('/')[9].split('-')[1]
 
-    # select the subject that are in the list of the 100 youngest
-    if any(sub in s for s in birth_date_20):
+    # select the subject that are in the list of the 20 youngest
+    if any(sub in s for s in mri_date_20):  # birth_date_20
 
         src_sessions = glob.glob(subject + '/ses-*', recursive=True)
 
@@ -81,8 +126,8 @@ for subject in src_subjects:
 
                 num_cortex += 1
 
-img_t2w = glob.glob(dst_dir_imgs+'/*-restore_T2w.nii.gz', recursive=True)
-img_cortex = glob.glob(dst_dir_mask+'/*-ribbon_space-T2w_dseg.nii.gz', recursive=True)
+img_t2w = glob.glob(dst_dir_imgs + '/*-restore_T2w.nii.gz', recursive=True)
+img_cortex = glob.glob(dst_dir_mask + '/*-ribbon_space-T2w_dseg.nii.gz', recursive=True)
 
 count = 0
 num_imgs = 20
@@ -118,7 +163,6 @@ for j in range(len(dirr)):
                 ses_ = img_t2w[k].split('/')[10].split('_')[1].split('-')[1]
 
                 if ses == ses_:
-
                     mask_ = mask_m.astype(np.uint16)
                     mask_n = nib.Nifti1Image(mask_, img_.affine, img_.header)
 
