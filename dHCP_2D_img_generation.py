@@ -5,6 +5,8 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import shutil
+import random
 
 src_imgs_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/restore_T2w/'
 src_mask_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/ribbon_space-T2w_dseg/mask/'
@@ -61,3 +63,30 @@ for i in range(len(imgs_list)):
                     nib.save(mask_n, src_both_dir + '/mask/' + str(sub_i) + '_' + str(ses_i) + '_' + str(j) + '.nii.gz')
 
                     count += 1
+
+# create a test_set of XXX images
+
+test_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/test_im2D/'
+imgs_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/both/imgs/'
+mask_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/both/mask/'
+
+imgs_list = glob.glob(imgs_dir+'*_*.nii.gz', recursive=True)
+mask_list = glob.glob(mask_dir+'*_*.nii.gz', recursive=True)
+
+num = 10
+count_im = 0
+
+while count_im < num:
+    test_im = random.choice(imgs_list)
+    test_id = test_im.split('/')[11]
+    print('test_id: '+str(test_id))
+    # return the index of the same subject and session as the image
+    match = mask_list.index(mask_dir+test_id)
+    # print('index: '+str(match))
+    mask_im = mask_list[match]
+    # print('mask_im: '+str(mask_im))
+    # print(test_im)
+    shutil.copy2(test_im, test_dir+'test_'+str(count_im)+'.nii.gz')
+    shutil.copy2(mask_im, test_dir+'GT_/GT_test_'+str(count_im)+'.nii.gz')
+    # nib.save(data_n, src_both_dir+'/imgs/'+str(sub_i)+'_'+str(ses_i)+'_'+str(j)+'.nii.gz')
+    count_im += 1
