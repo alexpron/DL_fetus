@@ -1,20 +1,11 @@
 import nibabel as nib
 from os.path import expanduser
-
 home = expanduser("~")
 import os
-
-import matplotlib.pyplot as plt
 import numpy as np
 import glob
 import shutil
-from PIL import Image
-# import uuid
-# import string, random
 import csv
-
-# import imageio
-# import tifffile as tif
 
 # put all the same type of image together in the same directory
 src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
@@ -43,31 +34,39 @@ mri_list = []
 for i in range(len(mri_subjects)):
     with open(mri_subjects[i], newline='') as tsvfile:
         subject = mri_subjects[i].split('/')[9].split('-')[1]
+
         reader_mri = csv.reader(tsvfile, delimiter='\t')
         data_mri = list(reader_mri)
         data_mri.pop(0)
 
         for j in range(len(data_mri)):
             # print(str(j)+'\t'+str(data_mri))
-            vect = [subject, data_mri[j][1]]
+            vect = [subject, data_mri[j][0], round(float(data_mri[j][1]))]
             mri_list.append(vect)
 
 
-def take_second(elem):
-    return elem[1]
+def take_third(elem):
+    return elem[2]
 
 
-mri_date_s = sorted(mri_list, key=take_second)
+mri_date_s = sorted(mri_list, key=take_third)
 
 mri_date_20 = []
+mri_subj_20 = []
 count_20_ = 0
 
 for i in range(len(mri_date_s)):
-    if float(mri_date_s[i][1]) < 40 and count_20_ < 20:
+    if float(mri_date_s[i][2]) < 40 and count_20_ < 20:
         if not any(mri_date_s[i][0] in s for s in mri_date_20):
             # print(mri_date_s[i])
             count_20_ += 1
             mri_date_20.append(mri_date_s[i])  # ["id", "birth_date"]
+            mri_subj_20.append(mri_date_s[i][0])
+
+with open(dst_directory+'mri_date.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter='\t')
+    for i in range(len(mri_date_20)):
+        writer.writerow(mri_date_20[i])
 
 # print(mri_date_20)
 
@@ -109,7 +108,7 @@ for subject in src_subjects:
     sub = subject.split('/')[9].split('-')[1]
 
     # select the subject that are in the list of the 20 youngest
-    if any(sub in s for s in mri_date_20):  # birth_date_20
+    if any(sub in s for s in mri_subj_20):  # birth_date_20
 
         src_sessions = glob.glob(subject + '/ses-*', recursive=True)
 
