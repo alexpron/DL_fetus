@@ -17,6 +17,12 @@ test_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/test_im2D/'
 imgs_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/both/imgs/'
 mask_dir = home+'/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/both/mask/'
 
+if not os.path.isdir(test_dir):
+    os.mkdir(test_dir)
+
+if not os.path.isdir(test_dir+'GT_/'):
+    os.mkdir(test_dir+'GT_')
+
 imgs_list = glob.glob(imgs_dir+'*_*.nii.gz', recursive=True)
 mask_list = glob.glob(mask_dir+'*_*.nii.gz', recursive=True)
 
@@ -42,6 +48,6 @@ while count_im < num:
                 # print('mask_im: '+str(mask_im))
                 # print(test_im)
                 shutil.copy2(test_im, test_dir+'test_'+str(count_im)+'_age_'+str(mri_date)+'.nii.gz')
-                shutil.copy2(test_im, test_dir+'GT_/GT_test_'+str(count_im)+'_age_'+str(mri_date)+'.nii.gz')
+                shutil.copy2(mask_im, test_dir+'GT_/GT_test_'+str(count_im)+'_age_'+str(mri_date)+'.nii.gz')
                 # nib.save(data_n, src_both_dir+'/imgs/'+str(sub_i)+'_'+str(ses_i)+'_'+str(j)+'.nii.gz')
                 count_im += 1
