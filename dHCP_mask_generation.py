@@ -8,10 +8,10 @@ import shutil
 import csv
 
 # put all the same type of image together in the same directory
-src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
-dst_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img2D/'
-dst_dir_mask = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/ribbon_space-T2w_dseg'
-dst_dir_imgs = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/img_classification/restore_T2w'
+src_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dHCP/data/'
+dst_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dHCP/img2D/'
+dst_dir_mask = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dHCP/img_classification/ribbon_space-T2w_dseg'
+dst_dir_imgs = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dHCP/img_classification/restore_T2w'
 
 if not os.path.isdir(dst_directory):
     os.mkdir(dst_directory)
@@ -24,7 +24,7 @@ if not os.path.isdir(dst_dir_imgs):
 
 ##### obtain MRI date
 
-mri_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/data/'
+mri_directory = home + '/Desktop/UPC/DD/Final_Project/Data_analysis/dHCP/data/'
 
 # get directories for each subject
 mri_subjects = glob.glob(mri_directory + 'sub-*' + '/sub-*_sessions.tsv', recursive=True)
@@ -33,7 +33,7 @@ mri_list = []
 
 for i in range(len(mri_subjects)):
     with open(mri_subjects[i], newline='') as tsvfile:
-        subject = mri_subjects[i].split('/')[9].split('-')[1]
+        subject = mri_subjects[i].split('/')[10].split('-')[1]
 
         reader_mri = csv.reader(tsvfile, delimiter='\t')
         data_mri = list(reader_mri)
@@ -53,18 +53,22 @@ mri_date_s = sorted(mri_list, key=take_third)
 
 mri_date_20 = []
 mri_subj_20 = []
-count_20_ = 0
+count_mri = 0
 
 for i in range(len(mri_date_s)):
-    if float(mri_date_s[i][2]) < 40 and count_20_ < 20:
+    if float(mri_date_s[i][2]) < 40 and count_mri < 35:
         if not any(mri_date_s[i][0] in s for s in mri_date_20):
             # print(mri_date_s[i])
-            count_20_ += 1
+            count_mri += 1
             mri_date_20.append(mri_date_s[i])  # ["id", "birth_date"]
             mri_subj_20.append(mri_date_s[i][0])
 
+print('Count_mri: '+str(count_mri))
+print('Length: '+str(len(mri_subj_20)))
+
 with open(dst_directory+'mri_date.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter='\t')
+    writer.writerow(['Subject', 'Session', 'MRI date'])
     for i in range(len(mri_date_20)):
         writer.writerow(mri_date_20[i])
 
@@ -91,11 +95,11 @@ def take_second(elem):
 
 birth_date_s = sorted(birth_date, key=take_second)
 birth_date_20 = []
-count_20 = 0
+count_birth = 0
 
 for i in range(len(birth_date_s)):
-    if float(birth_date_s[i][1]) < 30 and count_20 <= 50:
-        count_20 += 1
+    if float(birth_date_s[i][1]) < 30 and count_birth <= 50:
+        count_birth += 1
         birth_date_20.append(birth_date_s[i])
 
 # print(birth_date_20)
@@ -105,7 +109,7 @@ num_cortex = 0
 
 for subject in src_subjects:
 
-    sub = subject.split('/')[9].split('-')[1]
+    sub = subject.split('/')[10].split('-')[1]
 
     # select the subject that are in the list of the 20 youngest
     if any(sub in s for s in mri_subj_20):  # birth_date_20
@@ -114,9 +118,11 @@ for subject in src_subjects:
 
         for session in src_sessions:
 
+            ses = session.split('/')[11].split('-')[1]
+
             # from here the masks are obtained
             src_cortex = glob.glob(session + '/*-ribbon_space-T2w_dseg.nii.gz')
-            if len(src_cortex) == 1 and num_cortex < 20:
+            if len(src_cortex) == 1 and num_cortex < 35:
                 shutil.copy2(src_cortex[0], dst_dir_mask)
 
                 # from here the images are used if the corresponding image can be obtained
@@ -125,11 +131,11 @@ for subject in src_subjects:
 
                 num_cortex += 1
 
-img_t2w = glob.glob(dst_dir_imgs + '/*-restore_T2w.nii.gz', recursive=True)
-img_cortex = glob.glob(dst_dir_mask + '/*-ribbon_space-T2w_dseg.nii.gz', recursive=True)
+img_t2w = glob.glob(dst_dir_imgs + '/*-restore_T2w.nii.gz')
+img_cortex = glob.glob(dst_dir_mask + '/*-ribbon_space-T2w_dseg.nii.gz')
 
 count = 0
-num_imgs = 20
+num_imgs = 30
 
 # indicate for which directory we want to generate masks
 dirr = img_cortex
@@ -138,8 +144,8 @@ for j in range(len(dirr)):
     if count == num_imgs:
         break
     else:
-        sub = dirr[j].split('/')[10].split('_')[0].split('-')[1]
-        ses = dirr[j].split('/')[10].split('_')[1].split('-')[1]
+        sub = dirr[j].split('/')[11].split('_')[0].split('-')[1]
+        ses = dirr[j].split('/')[11].split('_')[1].split('-')[1]
 
         img_ = nib.load(dirr[j])
         data_m = img_.get_fdata()
@@ -155,17 +161,17 @@ for j in range(len(dirr)):
             mask_m[:, :, i] += (data_m[:, :, i] == 3)
 
         for k in range(len(img_t2w)):
-            sub_ = img_t2w[k].split('/')[10].split('_')[0].split('-')[1]
+            sub_ = img_t2w[k].split('/')[11].split('_')[0].split('-')[1]
 
             if sub == sub_:
 
-                ses_ = img_t2w[k].split('/')[10].split('_')[1].split('-')[1]
+                ses_ = img_t2w[k].split('/')[11].split('_')[1].split('-')[1]
 
                 if ses == ses_:
-                    mask_ = mask_m.astype(np.uint16)
+                    mask_ = mask_m.astype(np.float32)
                     mask_n = nib.Nifti1Image(mask_, img_.affine, img_.header)
 
-                    data_ = data_m.astype(np.uint16)
+                    data_ = data_m.astype(np.float32)
                     data_n = nib.Nifti1Image(data_, img_.affine, img_.header)
 
                     nib.save(data_n,
