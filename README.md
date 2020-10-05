@@ -6,6 +6,10 @@
 
 `Normalisation.ipynb` normalises the 3D images. It also generates 2D images from the 3D stack images (for both training and testing datasets).
 
+`UNetPytorch_vs_UNetDou.ipynb` compares the results obtained from both basic UNet and residual UNet (backbone network from the FetalCPSeg architecture).
+
+`Res_UNet_Multiclass.ipynb` compares the results obtained from single label studies (CSF+V, CP, WM) with the results obtained from the multilabel segmentation of these three masks.
+
 
 # Mesocentre
 
