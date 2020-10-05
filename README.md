@@ -95,6 +95,12 @@ When computing the training script, it is really important to create in advance 
 
 The data augmentation for this network is found in the `utils/dataset.py` script. The functions used are: `noise_injection()` and `get_augmentation()`.
 
+For the multiclass labeling, the only modifications that have to be made are:
+
+- change on the `train.py` file the number of classes. It should be `k` classes +1 (this extra class will correspond to the background).
+- if working with an imbalanced dataset, modify the weights in the part where the criterion loss is declared.
+- change on the `predict.py` file the number of classes as well. It will output an image with `k+1` chaannels (`k` classes + the background).
+
 ## 2D FetalCPSeg: semantic segmentation of cortical plate (CP)
 
 In this code, all the parameters are found within the scripts `Train.py` and `Infer.py`, so they have to be tuned in advance.
