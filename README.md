@@ -1,4 +1,14 @@
 
+
+# Scripts
+
+`masks_generation_dHCP.ipynb` generates the 3D masks for the selected images.
+
+`Normalisation.ipynb` normalises the 3D images. It also generates 2D images from the 3D stack images (for both training and testing datasets).
+
+
+# Mesocentre
+
 For setting up the environment in the Mesocentre:
 
 Firs, start a session in the corresponding partition:
@@ -24,9 +34,7 @@ Third, activate the virtual environment created in the folder of the code:
 > source .venv/bin/activate
 ```
 
-# UNet: semantic segmentation with PyTorch
-
-### Training
+## UNet: semantic segmentation with PyTorch
 
 ```shell script
 > python train.py -h
@@ -85,7 +93,9 @@ optional arguments:
 
 When computing the training script, it is really important to create in advance the output directory. This will have to be indicated in the terminal as well as the input directory (where the test images are).
 
-# 2D FetalCPSeg: semantic segmentation of cortical plate (CP)
+The data augmentation for this network is found in the `utils/dataset.py` script. The functions used are: `noise_injection()` and `get_augmentation()`.
+
+## 2D FetalCPSeg: semantic segmentation of cortical plate (CP)
 
 In this code, all the parameters are found within the scripts `Train.py` and `Infer.py`, so they have to be tuned in advance.
 
@@ -109,6 +119,10 @@ self.output_path = 'output_checkpoints/'
 
 The `data_path` and `mask_path` are the path where the training images and groundtruths are stored. The `output_path` is where the checkpoints are saved. In this architecture there is no need for selecting the best checkpoint, the code does it automatically saving it as `best_val.pth.gz`.
 
-For the `Infer.py` script, the parameter that need to be indicated is the one named `output_path` in the `Train.py` script as well as the directory where the test images are obtained from. Everythin else is saved in there and it is done automatically.
+For the `Infer.py` script, the parameter that need to be indicated is the one named `output_path` in the `Train.py` script as well as the directory where the test images are obtained from. Everything else is saved in there and it is done automatically.
+
+The data augmentation for this network is found in the `DataOp.py` script. The functions used are: `noise_injection()` and `get_augmentation()`. These are inside the class `TrainGenerator.py`.
+
+For the modifications and uses for this project the module `volumentations` has not been used.
 
 
